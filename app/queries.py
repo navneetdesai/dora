@@ -17,6 +17,7 @@ class Query:
 
         :return:
         """
+
         return """
         INSERT INTO users (first_name, last_name, email, username, password)
         VALUES (%s, %s, %s, %s, %s) RETURNING *;

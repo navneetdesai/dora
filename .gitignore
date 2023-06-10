@@ -161,3 +161,4 @@ cython_debug/
 
 # Private files
 commitinfo.txt
+secrets.py
