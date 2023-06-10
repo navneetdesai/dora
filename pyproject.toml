@@ -8,6 +8,12 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
+pre-commit = "^3.3.2"
+fastapi = "^0.96.0"
+uvicorn = "^0.22.0"
+psycopg2 = "2.9.6"
+psycopg2-binary = "2.9.6"
+python-dotenv = "^1.0.0"
 
 
 [build-system]
