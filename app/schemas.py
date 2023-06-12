@@ -20,7 +20,10 @@ class RegistrationResponse(Registration):
 
 
 class UserInfo(BaseModel):
-    users: Optional[List[Registration]]
+    users: Optional[List[RegistrationResponse]]
+
+    class Config:
+        orm_mode = True
 
 
 class Authentication(BaseModel):

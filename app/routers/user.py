@@ -1,3 +1,10 @@
+"""
+Handles user-related operation endpoints:
+- register
+- get a user
+- get all users
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
@@ -9,14 +16,19 @@ from ..schemas import *
 
 
 class DoraUser:
+    """
+    Handles user-related operation endpoints:
+        - register
+        - get a user
+        - get all users
+    """
+
     router = APIRouter(prefix="/users", tags=["User"])
     logger = Logger(__name__)
 
     @staticmethod
-    @router.get("/{username}", response_model=UserInfo)
-    async def get_user(
-        username: str, response: Response, db: Session = Depends(get_db)
-    ):
+    @router.get("/{username}", response_model=RegistrationResponse)
+    async def get_user(username: str, db: Session = Depends(get_db)):
         """
         Returns a user from the database.
         Success status code: 200
@@ -31,18 +43,16 @@ class DoraUser:
             .filter(models.User.username == username)
             .first()
         ):
+            DoraUser.logger.info(f"User {user.username} fetched.")
             return user
-        response.status_code = status.HTTP_404_NOT_FOUND
+        DoraUser.logger.warning(f"User {username} not registered. Return 404 Exception")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with username: {username} does not exist.",
         )
 
-    # TODO: Add response model
-    # TODO: Debug response model
-
     @staticmethod
-    @router.get("/")
+    @router.get("/", response_model=UserInfo)
     async def get_users(db: Session = Depends(get_db)):
         """
         Returns all registered users from the database.
@@ -53,7 +63,8 @@ class DoraUser:
         :return:
         """
         if users := db.query(models.User).all():
-            return users
+            return {"users": users}
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="No users in the database."
         )
@@ -63,21 +74,30 @@ class DoraUser:
         "/", status_code=status.HTTP_201_CREATED, response_model=RegistrationResponse
     )
     async def register(
-        item: RegistrationRequest, response: Response, db: Session = Depends(get_db)
+        request: RegistrationRequest, response: Response, db: Session = Depends(get_db)
     ):
         """
         Registers the user
 
-        :param item: Registration object
+        :param request: Registration object
         :param response: Response object
         :param db: Database session
         :return: JSON object
         """
-        item.password = hash_password(item.password)
-        if user := models.User(**item.dict()):
-            response.status_code = status.HTTP_201_CREATED
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            return user
+        request.password = hash_password(request.password)
+        try:
+            if user := models.User(**request.dict()):
+                response.status_code = status.HTTP_201_CREATED
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+                return user
+        except Exception as e:
+            DoraUser.logger.warning(
+                "User with this username or email already exists! Raising 405 error..."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+                detail="User with this username or email already exists! ",
+            ) from e
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)

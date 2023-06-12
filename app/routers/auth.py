@@ -2,7 +2,7 @@
 Handle user login and authentication endpoint
 """
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..db_helper import get_db
