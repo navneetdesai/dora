@@ -29,7 +29,7 @@ async def get_user(username: str, response: Response, db: Session = Depends(get_
     )
 
 
-@router.get("/")
+@router.get("/", response_model=UserInfo)
 async def get_users(response: Response, db: Session = Depends(get_db)):
     """
     Returns all registered users from the database.
@@ -40,7 +40,7 @@ async def get_users(response: Response, db: Session = Depends(get_db)):
     :return:
     """
     if users := db.query(models.User).all():
-        return {"data": users}
+        return users
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="No users in the database."
     )

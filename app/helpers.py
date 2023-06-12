@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta
 
+from fastapi import HTTPException, status
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-import dotenv
+from .settings import settings
 
-# openssl
-env_values = dotenv.dotenv_values()
-ACCESS_TOKEN_EXPIRE_MINUTES = int(env_values["ACCESS_TOKEN_EXPIRE_MINUTES"])
-SECRET_KEY = env_values["SECRET_KEY"]
-ALGORITHM = env_values["ALGORITHM"]
+password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+ACCESS_TOKEN_EXPIRE_MINUTES = int(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
 
 
 def hash_password(password: str):
@@ -26,3 +27,21 @@ def create_jwt_token(data: dict):  # sourcery skip: dict-assign-update-to-union
     expiry = datetime.now() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     input_data.update({"exp": expiry})
     return jwt.encode(input_data, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def _validate_jwt_token(token, invalid_credentials_exception):
+    try:
+        data = jwt.decode(token, SECRET_KEY)
+        if username := data.get("username"):
+            return username
+        else:
+            raise invalid_credentials_exception
+    except JWTError as e:
+        raise invalid_credentials_exception from e
+
+
+def get_user(token: str):
+    invalid_credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials"
+    )
+    return _validate_jwt_token(token, invalid_credentials_exception)

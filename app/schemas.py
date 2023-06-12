@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -17,10 +19,14 @@ class RegistrationResponse(Registration):
         orm_mode = True
 
 
-class UserInfo(Registration):
-    pass
+class UserInfo(BaseModel):
+    users: Optional[List[Registration]]
 
 
 class Authentication(BaseModel):
     username: str
     password: str
+
+
+class JWTToken(BaseModel):
+    username: Optional[str]
