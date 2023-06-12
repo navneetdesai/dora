@@ -19,3 +19,8 @@ class RegistrationResponse(Registration):
 
 class UserInfo(Registration):
     pass
+
+
+class Authentication(BaseModel):
+    username: str
+    password: str

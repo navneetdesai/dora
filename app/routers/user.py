@@ -6,7 +6,7 @@ from ..db_helper import get_db
 from ..helpers import hash_password
 from ..schemas import *
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["User"])
 
 
 @router.get("/{username}", response_model=UserInfo)
