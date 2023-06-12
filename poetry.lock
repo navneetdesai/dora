@@ -282,6 +282,23 @@ files = [
 ]
 
 [[package]]
+name = "colorlog"
+version = "6.7.0"
+description = "Add colours to the output of Python's logging module."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "colorlog-6.7.0-py2.py3-none-any.whl", hash = "sha256:0d33ca236784a1ba3ff9c532d4964126d8a2c44f1f0cb1d2b0728196f512f662"},
+    {file = "colorlog-6.7.0.tar.gz", hash = "sha256:bd94bd21c1e13fac7bd3153f4bc3a7dc0eb0974b8bc2fdf1a989e474f6e582e5"},
+]
+
+[package.dependencies]
+colorama = {version = "*", markers = "sys_platform == \"win32\""}
+
+[package.extras]
+development = ["black", "flake8", "mypy", "pytest", "types-colorama"]
+
+[[package]]
 name = "cryptography"
 version = "41.0.1"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -1194,4 +1211,4 @@ test = ["covdefaults (>=2.3)", "coverage (>=7.2.3)", "coverage-enable-subprocess
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "0c95bbb131e520a3949750164036d432f084f98331ad20fad1b4a0cac9deab82"
+content-hash = "c742261a5a8869d98bfbcdb4aa3862cca6694e784193ad00056ee30fc95f5d59"

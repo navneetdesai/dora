@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 from .. import models
 from ..db_helper import get_db
 from ..helpers import hash_password
+from ..logger import Logger
 from ..schemas import *
 
 router = APIRouter(prefix="/users", tags=["User"])
+logger = Logger(__name__)
 
 
 @router.get("/{username}", response_model=UserInfo)
@@ -29,8 +31,12 @@ async def get_user(username: str, response: Response, db: Session = Depends(get_
     )
 
 
-@router.get("/", response_model=UserInfo)
-async def get_users(response: Response, db: Session = Depends(get_db)):
+# TODO: Add response model
+# TODO: Debug response model
+
+
+@router.get("/")
+async def get_users(db: Session = Depends(get_db)):
     """
     Returns all registered users from the database.
     Success status code: 200
@@ -40,6 +46,7 @@ async def get_users(response: Response, db: Session = Depends(get_db)):
     :return:
     """
     if users := db.query(models.User).all():
+        logger.critical("Testing some things")
         return users
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, detail="No users in the database."
