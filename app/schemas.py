@@ -33,3 +33,15 @@ class Authentication(BaseModel):
 
 class JWTToken(BaseModel):
     username: Optional[str]
+
+
+class AlertCreateRequest(BaseModel):
+    title: str
+    description: str
+    severity: str
+    coverage: Optional[int] = 50  # km
+    inform_all: Optional[bool] = False
+
+
+class AlertsCreateRequest(BaseModel):
+    alerts: List[AlertCreateRequest]
