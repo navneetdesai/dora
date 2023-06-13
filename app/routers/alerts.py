@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.openapi.models import Response
+from psycopg2 import errors
 from sqlalchemy.orm import Session
 
 from app.db_helper import get_db
@@ -22,8 +23,10 @@ class DoraAlert:
         dora_alert = DoraAlert()
         dora_alert._validate_alerts(request)
         dora_alert.logger.info("Alerts validated")
-        dora_alert.store_alerts(request, db)
-        return None
+        response = dora_alert.store_alerts(request, db)
+        dora_alert.logger.info("Alerts stored")
+        print(response)
+        return response
 
     def _validate_alerts(self, request):
         for alert in request.alerts:
@@ -46,14 +49,29 @@ class DoraAlert:
             "high",
             "critical",
         ]
-        print(type(alert.coverage))
         is_coverage_valid = 0 <= alert.coverage < 10000
-        print(is_coverage_valid)
         return is_severity_valid and is_coverage_valid
 
     def store_alerts(self, request, db):
+        response = []
         try:
             for alert in request.alerts:
+                existing_alert = (
+                    db.query(Alert)
+                    .filter_by(
+                        title=alert.title,
+                        description=alert.description,
+                        severity=alert.severity,
+                        coverage=alert.coverage,
+                    )
+                    .first()
+                )
+                if existing_alert:
+                    response.append(existing_alert)
+                    self.logger.warning(
+                        "Alert already exists in the database. Skipping storage..."
+                    )
+                    continue
                 alert_ = Alert(
                     title=alert.title,
                     description=alert.description,
@@ -63,6 +81,8 @@ class DoraAlert:
                 db.add(alert_)
                 db.commit()
                 db.refresh(alert_)
+                response.append(alert_)
+            return response
         except Exception as e:
             self.logger.error(f"Error storing alerts: {e}")
             db.rollback()

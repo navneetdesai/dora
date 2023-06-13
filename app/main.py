@@ -17,7 +17,7 @@ app.add_middleware(
 models.Base.metadata.create_all(bind=engine)
 app.include_router(user.DoraUser.router)
 app.include_router(auth.DoraAuth.router)
-app.include_router(alerts.DoraAlert().router)
+app.include_router(alerts.DoraAlert.router)
 
 
 @app.get("/")

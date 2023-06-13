@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
@@ -59,3 +59,6 @@ class Alert(Base):
     description = Column(String)
     severity = Column(String)
     coverage = Column(Integer)
+    __table_args__ = (
+        UniqueConstraint("title", "description", "severity", "coverage", name="uix_1"),
+    )
