@@ -39,7 +39,11 @@ class AlertCreateRequest(BaseModel):
     title: str
     description: str
     severity: str
-    coverage: Optional[int] = 50  # km
+    location: str
+    pincodes: Optional[List[int]]
+    cities: Optional[List[str]]
+    states: Optional[List[str]]
+    countries: Optional[List[str]]
     inform_all: Optional[bool] = False
 
 

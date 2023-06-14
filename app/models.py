@@ -35,7 +35,10 @@ class Person(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     phone_number = Column(String, unique=True, index=True, nullable=False)
     language = Column(String, nullable=True, default="en")
-    region_id = Column(Integer, ForeignKey("regions.id"), nullable=True)
+    pin_code = Column(Integer, nullable=False)
+    city = Column(String, nullable=False)
+    state = Column(String, nullable=False)
+    country = Column(String, nullable=False)
 
 
 class Region(Base):
@@ -46,6 +49,7 @@ class Region(Base):
     __tablename__ = "regions"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, nullable=False)
+    geocode = Column(String, nullable=False)
 
 
 class Alert(Base):
@@ -58,7 +62,6 @@ class Alert(Base):
     title = Column(String)
     description = Column(String)
     severity = Column(String)
-    coverage = Column(Integer)
     __table_args__ = (
-        UniqueConstraint("title", "description", "severity", "coverage", name="uix_1"),
+        UniqueConstraint("title", "description", "severity", name="uix_1"),
     )

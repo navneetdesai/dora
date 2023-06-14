@@ -4,8 +4,9 @@ from psycopg2 import errors
 from sqlalchemy.orm import Session
 
 from app.db_helper import get_db
+from app.geopy_helper import Geopy
 from app.logger import Logger
-from app.models import Alert
+from app.models import Alert, Region
 from app.schemas import AlertsCreateRequest
 
 
@@ -16,6 +17,7 @@ class DoraAlert:
 
     router = APIRouter(tags=["Alerts"])
     logger = Logger(__name__)
+    geo = Geopy()
 
     @staticmethod
     @router.post("/alerts", status_code=status.HTTP_201_CREATED)
@@ -25,10 +27,15 @@ class DoraAlert:
         dora_alert.logger.info("Alerts validated")
         response = dora_alert.store_alerts(request, db)
         dora_alert.logger.info("Alerts stored")
-        print(response)
+        dora_alert.send_alerts(request, db)
         return response
 
     def _validate_alerts(self, request):
+        """
+        Validate alerts in the request
+        :param request: list of alerts
+        :return: None
+        """
         for alert in request.alerts:
             if not self._validate_alert(alert):
                 raise HTTPException(
@@ -56,7 +63,7 @@ class DoraAlert:
         response = []
         try:
             for alert in request.alerts:
-                existing_alert = (
+                if existing_alert := (  # alert already exists
                     db.query(Alert)
                     .filter_by(
                         title=alert.title,
@@ -65,13 +72,13 @@ class DoraAlert:
                         coverage=alert.coverage,
                     )
                     .first()
-                )
-                if existing_alert:
+                ):  # append and log
                     response.append(existing_alert)
                     self.logger.warning(
                         "Alert already exists in the database. Skipping storage..."
                     )
                     continue
+                # otherwise create new alerts
                 alert_ = Alert(
                     title=alert.title,
                     description=alert.description,
@@ -89,4 +96,11 @@ class DoraAlert:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error storing alerts: {e}",
-            )
+            ) from e
+
+    def send_alerts(self, request, db):
+        for alert in request.alerts:
+            if alert.inform_all:
+                # make twilio calls
+                pass
+            pass
