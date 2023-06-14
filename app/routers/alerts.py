@@ -1,3 +1,5 @@
+from typing import Set
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.openapi.models import Response
 from psycopg2 import errors
@@ -6,8 +8,9 @@ from sqlalchemy.orm import Session
 from app.db_helper import get_db
 from app.geopy_helper import Geopy
 from app.logger import Logger
-from app.models import Alert, Region
+from app.models import Alert, Person, Region
 from app.schemas import AlertsCreateRequest
+from app.twilio_client import TwilioClient
 
 
 class DoraAlert:
@@ -18,11 +21,23 @@ class DoraAlert:
     router = APIRouter(tags=["Alerts"])
     logger = Logger(__name__)
     geo = Geopy()
+    numbers: Set[int] = set()
+    emails: Set[str] = set()
+    mapper = {
+        "pincode": Person.pin_code,
+        "city": Person.city,
+        "state": Person.state,
+        "country": Person.country,
+    }
+    twilio_client = None
 
     @staticmethod
     @router.post("/alerts", status_code=status.HTTP_201_CREATED)
     async def create_alert(request: AlertsCreateRequest, db: Session = Depends(get_db)):
         dora_alert = DoraAlert()
+        dora_alert.twilio_client = TwilioClient()
+        dora_alert.numbers.clear()
+        dora_alert.emails.clear()
         dora_alert._validate_alerts(request)
         dora_alert.logger.info("Alerts validated")
         response = dora_alert.store_alerts(request, db)
@@ -37,10 +52,11 @@ class DoraAlert:
         :return: None
         """
         for alert in request.alerts:
-            if not self._validate_alert(alert):
+            validation_detail = self._validate_alert(alert)
+            if validation_detail is not True:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Invalid alert: {alert}",
+                    detail=f"Invalid alert: {validation_detail}",
                 )
 
     @staticmethod
@@ -56,8 +72,16 @@ class DoraAlert:
             "high",
             "critical",
         ]
-        is_coverage_valid = 0 <= alert.coverage < 10000
-        return is_severity_valid and is_coverage_valid
+        if not is_severity_valid:
+            return "Invalid severity, must be one of: low, medium, high, critical"
+        has_locations = (
+            alert.cities or alert.countries or alert.states or alert.pincodes
+        )
+        return (
+            True
+            if has_locations
+            else "No locations provided. Must provide at least one of: cities, countries, states, pincodes"
+        )
 
     def store_alerts(self, request, db):
         response = []
@@ -69,7 +93,6 @@ class DoraAlert:
                         title=alert.title,
                         description=alert.description,
                         severity=alert.severity,
-                        coverage=alert.coverage,
                     )
                     .first()
                 ):  # append and log
@@ -83,7 +106,6 @@ class DoraAlert:
                     title=alert.title,
                     description=alert.description,
                     severity=alert.severity,
-                    coverage=alert.coverage,
                 )
                 db.add(alert_)
                 db.commit()
@@ -103,4 +125,34 @@ class DoraAlert:
             if alert.inform_all:
                 # make twilio calls
                 pass
-            pass
+            # send alerts to all pincodes, cities, states, countries in request
+            pincodes = alert.pincodes or []
+            cities = alert.cities or []
+            states = alert.states or []
+            countries = alert.countries or []
+            locations = [pincodes, cities, states, countries]
+            types = ["pincode", "city", "state", "country"]
+            for locations_, type_ in zip(locations, types):
+                if locations_:
+                    self.collect_contact_information(locations_, type_, db)
+            self.trigger_text_alerts(f"{alert.title} - {alert.description}")
+            self.trigger_email_alerts()
+
+    def collect_contact_information(self, locations_, type_, db):
+        column = self.mapper[type_]
+        for email, phone_number in (
+            db.query(Person.email, Person.phone_number)
+            .filter(column.in_(locations_))
+            .all()
+        ):
+            self.numbers.add(phone_number)
+            self.emails.add(email)
+            self.logger.info(f"{email} will be alerted.")
+
+    def trigger_text_alerts(self, message="Alert from Dora"):
+        # for number in self.numbers:
+        self.twilio_client.send_text(message, "+917738610648")
+        self.logger.info(f"Text alert sent to {self.numbers}")
+
+    def trigger_email_alerts(self):
+        self.twilio_client.send_email("Alert from Dora", "navneetdesai44@gmail.com")

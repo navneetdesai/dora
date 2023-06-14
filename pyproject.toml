@@ -24,6 +24,8 @@ alembic = "^1.11.1"
 detect-secrets = "^1.4.0"
 colorlog = "^6.7.0"
 geopy = "^2.3.0"
+twilio = "^8.2.2"
+sendgrid = "^6.10.0"
 
 
 [build-system]

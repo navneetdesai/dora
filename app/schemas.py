@@ -39,7 +39,6 @@ class AlertCreateRequest(BaseModel):
     title: str
     description: str
     severity: str
-    location: str
     pincodes: Optional[List[int]]
     cities: Optional[List[str]]
     states: Optional[List[str]]
