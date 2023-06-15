@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 
-from fastapi import HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from .settings import settings
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = int(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -40,7 +42,7 @@ def _validate_jwt_token(token, invalid_credentials_exception):
         raise invalid_credentials_exception from e
 
 
-def get_user(token: str):
+def get_user(token: str = Depends(oauth2_scheme)):
     invalid_credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Credentials"
     )

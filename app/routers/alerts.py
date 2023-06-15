@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 
 from app.db_helper import get_db
 from app.geopy_helper import Geopy
+from app.helpers import get_user
 from app.logger import Logger
 from app.models import Alert, Person, Region
 from app.schemas import AlertsCreateRequest
+from app.settings import settings
 from app.twilio_client import TwilioClient
 
 
@@ -33,7 +35,11 @@ class DoraAlert:
 
     @staticmethod
     @router.post("/alerts", status_code=status.HTTP_201_CREATED)
-    async def create_alert(request: AlertsCreateRequest, db: Session = Depends(get_db)):
+    async def create_alert(
+        request: AlertsCreateRequest,
+        db: Session = Depends(get_db),
+        username: str = Depends(get_user),
+    ):
         dora_alert = DoraAlert()
         dora_alert.twilio_client = TwilioClient()
         dora_alert.numbers.clear()
@@ -135,8 +141,8 @@ class DoraAlert:
             for locations_, type_ in zip(locations, types):
                 if locations_:
                     self.collect_contact_information(locations_, type_, db)
-            self.trigger_text_alerts(f"{alert.title} - {alert.description}")
-            self.trigger_email_alerts()
+            self.trigger_text_alerts(f"{alert.title}\n{alert.description}")
+            self.trigger_email_alerts(alert.title, alert.description)
 
     def collect_contact_information(self, locations_, type_, db):
         column = self.mapper[type_]
@@ -151,8 +157,19 @@ class DoraAlert:
 
     def trigger_text_alerts(self, message="Alert from Dora"):
         # for number in self.numbers:
-        self.twilio_client.send_text(message, "+917738610648")
+        if not settings.send_texts or not self.numbers:
+            self.logger.info("Skipping text alerts")
+            return
+        for number in self.numbers:
+            self.twilio_client.send_text(message, number)
         self.logger.info(f"Text alert sent to {self.numbers}")
 
-    def trigger_email_alerts(self):
-        self.twilio_client.send_email("Alert from Dora", "navneetdesai44@gmail.com")
+    def trigger_email_alerts(self, title, description):
+        if not settings.send_emails or not self.emails:
+            self.logger.info("Skipping email alerts")
+            return
+        for email in self.emails:
+            self.twilio_client.send_email(
+                f"Alert from Dora: {title}", description, email
+            )
+        self.logger.info(f"Email alert sent to {self.emails}")
