@@ -48,3 +48,25 @@ class AlertCreateRequest(BaseModel):
 
 class AlertsCreateRequest(BaseModel):
     alerts: List[AlertCreateRequest]
+
+
+class Subscriber(BaseModel):
+    first_name: str
+    last_name: str
+    email: EmailStr
+    phone_number: str
+    language: str
+    pin_code: int
+    city: str
+    state: str
+    country: str
+
+    class Config:
+        orm_mode = True
+
+
+class Subscribers(BaseModel):
+    subscribers: Optional[List[Subscriber]]
+
+    class Config:
+        orm_mode = True
