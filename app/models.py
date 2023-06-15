@@ -62,6 +62,10 @@ class Alert(Base):
     title = Column(String)
     description = Column(String)
     severity = Column(String)
+    # created at date
+    created_at = Column(
+        TIMESTAMP(timezone=True), nullable=False, server_default=text("now()")
+    )
     __table_args__ = (
         UniqueConstraint("title", "description", "severity", name="uix_1"),
     )

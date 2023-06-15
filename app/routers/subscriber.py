@@ -70,6 +70,7 @@ class DoraSubscriber:
         Returns all subscribers in the database.
         Success status code: 200
         Error status code: 400
+        :param email:
         :param username:
         :param db:
         :return:

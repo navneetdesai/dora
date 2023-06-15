@@ -1,6 +1,7 @@
+import datetime
 from typing import Set
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.openapi.models import Response
 from psycopg2 import errors
 from sqlalchemy.orm import Session
@@ -50,6 +51,15 @@ class DoraAlert:
         dora_alert.logger.info("Alerts stored")
         dora_alert.send_alerts(request, db)
         return response
+
+    @staticmethod
+    @router.get("/alerts", status_code=status.HTTP_200_OK)
+    async def get_alerts(
+        days: int = 1, db: Session = Depends(get_db), username: str = Depends(get_user)
+    ):
+        now = datetime.datetime.now()
+        from_ = now - datetime.timedelta(days=days)
+        return db.query(Alert).filter(Alert.created_at.between(from_, now)).all()
 
     def _validate_alerts(self, request):
         """
