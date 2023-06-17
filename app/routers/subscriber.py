@@ -1,3 +1,6 @@
+"""
+Handles subscriber endpoints
+"""
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -9,6 +12,10 @@ from ..schemas import *
 
 
 class DoraSubscriber:
+    """
+    Handles subscriber endpoints
+    """
+
     router = APIRouter(tags=["User"])
     logger = Logger(__name__)
 
@@ -22,12 +29,15 @@ class DoraSubscriber:
         """
         Registers a subscriber in the database.
         Success status code: 201
-        Error status code: 400
-        :param username:
-        :param request:
-        :param db:
-        :return:
+        Error status code: 500
+        :param username: username of the user
+        :param request: request body
+        :param db: Database session
+        :return: JSON object
         """
+        DoraSubscriber.logger.info(
+            f"Registering subscriber {request.email} from {username}'s request."
+        )
         try:
             subscriber = models.Person(
                 first_name=request.first_name,
@@ -49,10 +59,9 @@ class DoraSubscriber:
             DoraSubscriber.logger.error(
                 f"Subscriber {request.email} registration failed."
             )
-            print(e)
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Subscriber {request.email} registration failed.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Subscriber {request.email} registration failed due to internal server error.",
             ) from e
 
     @staticmethod
@@ -69,12 +78,15 @@ class DoraSubscriber:
         """
         Returns all subscribers in the database.
         Success status code: 200
-        Error status code: 400
-        :param email:
-        :param username:
-        :param db:
-        :return:
+        Error status code: 500
+        :param city: city of the subscriber
+        :param pin_code: pin code of the subscriber
+        :param email: email of the subscriber
+        :param username: username of the user
+        :param db: Database session
+        :return: JSON object
         """
+        DoraSubscriber.logger.info(f"Retrieving subscribers for {username}'s request.")
         try:
             subscribers = db.query(models.Person)
             if email:
@@ -89,6 +101,6 @@ class DoraSubscriber:
         except Exception as e:
             DoraSubscriber.logger.error("Subscribers fetch failed.")
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Subscribers fetch failed.",
             ) from e

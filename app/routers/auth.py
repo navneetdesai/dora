@@ -40,5 +40,5 @@ class DoraAuth:
             )
         jwt_token = create_jwt_token({"username": user.username})
         user_username = get_user(jwt_token)
-        DoraAuth.logger.debug(f"User logged in: {user_username}")
+        DoraAuth.logger.info(f"User logged in: {user_username}")
         return {"access_token": jwt_token, "token_type": "Bearer"}
