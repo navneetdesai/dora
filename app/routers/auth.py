@@ -21,7 +21,7 @@ class DoraAuth:
     logger = Logger(__name__)
 
     @staticmethod
-    @router.post("/login")
+    @router.post("/login", status_code=status.HTTP_200_OK)
     def login(credentials: Authentication, db: Session = Depends(get_db)):
         """
         Authenticates the credentials in the request

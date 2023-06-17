@@ -26,6 +26,9 @@ colorlog = "^6.7.0"
 geopy = "^2.3.0"
 twilio = "^8.2.2"
 sendgrid = "^6.10.0"
+pytest = "^7.3.2"
+httpx = "^0.24.1"
+pytest-mock = "^3.11.1"
 
 
 [build-system]

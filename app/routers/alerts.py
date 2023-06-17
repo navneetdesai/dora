@@ -4,7 +4,7 @@ Handles alert endpoints
 import datetime
 from typing import Set
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db_helper import get_db
