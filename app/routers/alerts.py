@@ -7,7 +7,6 @@ from psycopg2 import errors
 from sqlalchemy.orm import Session
 
 from app.db_helper import get_db
-from app.geopy_helper import Geopy
 from app.helpers import get_user
 from app.logger import Logger
 from app.models import Alert, Person, Region
@@ -23,7 +22,6 @@ class DoraAlert:
 
     router = APIRouter(tags=["Alerts"])
     logger = Logger(__name__)
-    geo = Geopy()
     numbers: Set[int] = set()
     emails: Set[str] = set()
     mapper = {

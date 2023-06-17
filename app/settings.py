@@ -1,7 +1,16 @@
+"""
+Reads environment variables from .env file and stores them in a Settings class.
+"""
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
 from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    """
+    Settings class that reads environment variables from .env file.
+    """
+
     USERNAME: str
     PASSWORD: str
     HOST: str
@@ -14,11 +23,18 @@ class Settings(BaseSettings):
     TWILIO_PHONE_NUMBER: str
     EMAIL: str
     APP_PASSWORD: str
-    send_emails: bool = False
-    send_texts: bool = False
+    SEND_EMAILS: bool = False
+    SEND_TEXTS: bool = False
+    PASSWORD_CONTEXT: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="login")
 
     class Config:
         env_file = ".env"
 
 
-settings = Settings()
+def settings() -> Settings:
+    """
+    Returns settings from .env file.
+    :return:
+    """
+    return Settings()  # instantiate the Settings class

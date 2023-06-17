@@ -1,4 +1,7 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+"""
+This file contains the models for the database
+"""
+from sqlalchemy import Column, Integer, String, UniqueConstraint
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
@@ -25,7 +28,7 @@ class User(Base):
 
 class Person(Base):
     """
-    People who are in the system
+    People who are in the system (subscribers)
     """
 
     __tablename__ = "people"

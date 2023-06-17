@@ -1,9 +1,13 @@
+"""
+This file contains the database helper functions.
+"""
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from .settings import settings
 
+settings = settings()
 DB_URL = f"postgresql://{settings.USERNAME}:{settings.PASSWORD}@{settings.HOST}/{settings.DATABASE}"
 
 engine = create_engine(DB_URL)
@@ -12,6 +16,10 @@ Base = declarative_base()
 
 
 def get_db():
+    """
+    Returns a database session
+    :return: database session
+    """
     db = session_local()
     try:
         yield db
