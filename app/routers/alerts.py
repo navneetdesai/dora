@@ -179,8 +179,12 @@ class DoraAlert:
                 for locations_, type_ in zip(locations, types):
                     if locations_:
                         await self.collect_contact_information(locations_, type_, db)
-            await self.trigger_text_alerts(f"{alert.title}\n{alert.description}")
-            await self.trigger_email_alerts(alert.title, alert.description)
+            await self.trigger_text_alerts(
+                f"Severity[{alert.severity}]: {alert.title}\n{alert.description}"
+            )
+            await self.trigger_email_alerts(
+                f"Severity[{alert.severity}]: {alert.title}", alert.description
+            )
 
     async def collect_contact_information(self, locations_, type_, db):
         """

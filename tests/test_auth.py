@@ -13,7 +13,7 @@ def test_login_user(client):
     response = client.post(
         "/login",
         json={
-            "username": "user1",  # pragma: allowlist secret
+            "username": "test1",  # pragma: allowlist secret
             "password": "password",  # pragma: allowlist secret
         },
     )
@@ -25,8 +25,8 @@ def test_login_user(client):
 @pytest.mark.parametrize(
     "username, password, status_code",
     [
-        ("firsttest55", "lasttest", 403),  # pragma: allowlist secret
-        ("user2", "password", 200),  # pragma: allowlist secret
+        ("firsttest55", "lasttest", 200),  # pragma: allowlist secret
+        ("test2", "password", 200),  # pragma: allowlist secret
         ("firsttest55", "wrongpassword", 403),  # pragma: allowlist secret
         ("wrongusername", "lasttest", 403),  # pragma: allowlist secret
     ],
