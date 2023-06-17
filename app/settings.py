@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     TWILIO_PHONE_NUMBER: str
     EMAIL: str
     APP_PASSWORD: str
-    SEND_EMAILS: bool = False
-    SEND_TEXTS: bool = False
+    SEND_EMAILS: bool = True
+    SEND_TEXTS: bool = True
     PASSWORD_CONTEXT: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
     OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="login")
 

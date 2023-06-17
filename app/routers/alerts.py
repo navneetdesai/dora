@@ -53,8 +53,9 @@ class DoraAlert:
         dora_alert = DoraAlert()
         dora_alert.logger.info(f"User {username} requested to create alerts")
         await dora_alert._validate_alerts(request)
-        response = dora_alert.store_alerts(request, db)
+        response = await dora_alert.store_alerts(request, db)
         await dora_alert.send_alerts(request, db)
+        dora_alert.logger.info("DONE")
         return response
 
     @staticmethod
@@ -82,6 +83,7 @@ class DoraAlert:
         """
         for alert in request.alerts:
             validation_detail = self._validate_alert(alert)
+
             if validation_detail is not True:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -89,7 +91,7 @@ class DoraAlert:
                 )
 
     @staticmethod
-    async def _validate_alert(alert):
+    def _validate_alert(alert):
         """
         Validate alert
         :param alert: alert to validate

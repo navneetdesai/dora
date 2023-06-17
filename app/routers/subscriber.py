@@ -61,7 +61,7 @@ class DoraSubscriber:
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Subscriber {request.email} registration failed due to internal server error.",
+                detail=f"Subscriber {request.email} registration failed due to internal server error. Ensure that the subscriber is not already registered with this email or phone number.",
             ) from e
 
     @staticmethod
